@@ -1,5 +1,5 @@
 
-Follow along in the code from Steps I-VII 
+Follow along in the code from Steps I-VII, [here](src/main/java/io/skymind/training/ibm/recurrent/seqClassification/UCISequenceClassificationExample.java) 
 
 Here are a few exercises to further explore and understand the dl4j api. 
 
