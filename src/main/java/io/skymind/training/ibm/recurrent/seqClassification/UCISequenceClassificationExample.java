@@ -29,10 +29,7 @@ import java.io.File;
 
 /**
  * Sequence Classification Example Using a LSTM Recurrent Neural Network
- * <p>
  * This example learns how to classify univariate time series as belonging to one of six categories.
- * Categories are: Normal, Cyclic, Increasing trend, Decreasing trend, Upward shift, Downward shift
- * <p>
  * Data is the UCI Synthetic Control Chart Time Series Data Set
  * Details:     https://archive.ics.uci.edu/ml/datasets/Synthetic+Control+Chart+Time+Series
  * Data:        https://archive.ics.uci.edu/ml/machine-learning-databases/synthetic_control-mld/synthetic_control.data
@@ -50,7 +47,7 @@ public class UCISequenceClassificationExample {
             STEP I.
             Download and write the data in a suitable format into csv files
                 - separate files for features and labels
-                - separate directories for train and test
+                - separate directories for train and test (a 75:25 split)
                 Use for future reference: https://deeplearning4j.org/usingrnns#data
          */
 

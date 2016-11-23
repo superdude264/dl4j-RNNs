@@ -1,24 +1,19 @@
-This example proceeds as follows:
-1. Download and prepare the data
-   (a) Split the 600 sequences into train set of size 450, and test set of size 150
-   (b) Write the data into a format suitable for loading using the CSVSequenceRecordReader for sequence classification
-       This format: one time series per file, and a separate file for the labels.
-       For example, train/features/0.csv is the features using with the labels file train/labels/0.csv
-       Because the data is a univariate time series, we only have one column in the CSV files. Normally, each column
-       would contain multiple values - one time step per row.
-       Furthermore, because we have only one label for each time series, the labels CSV files contain only a single value
+This example proceeds as follows: 
 
-2. Load the training data using CSVSequenceRecordReader (to load/parse the CSV files) and SequenceRecordReaderDataSetIterator
-   (to convert it to DataSet objects, ready to train)
-   For more details on this step, see: http://deeplearning4j.org/usingrnns#data
+Follow along in the code from Steps I-VII 
 
-3. Normalize the data. The raw data contain values that are too large for effective training, and need to be normalized.
-   Normalization is conducted using NormalizerStandardize, based on statistics (mean, st.dev) collected on the training
-   data only. Note that both the training data and test data are normalized in the same way.
+Here are a few exercises to further explore and understand the dl4j api.
+1. Take a look at the csv files written out. Compare this to the raw data that can be viewed [here](https://archive.ics.uci.edu/ml/machine-learning-databases/synthetic_control-mld/synthetic_control.data) 
+   The format: one time series per file, and a separate file for the labels matched up by name.For example, train/features/0.csv is the features using with the labels file train/labels/0.csv 
+   The data here is a univariate time series, we only have one column in the CSV files.
+   Furthermore, because we have only one label for each time series, the labels CSV files contain only a single value 
+   For more details on importing time series and how to handle time series with different lengths, refer [here](http://deeplearning4j.org/usingrnns#data)
 
-4. Configure the network
-   The data set here is very small, so we can't afford to use a large network with many parameters.
-   We are using one small LSTM layer and one RNN output layer
+2. Vary the mini batch size and note the effect on the score function in the UI. What happens when a larger mini batch size is used? A smaller? 
 
-5. Train the network for 40 epochs
-   At each epoch, evaluate and print the accuracy and f1 on the test set
+3. Vary the learning rate by 100x,10x and 0.1x. Note the effect on the scores in the UI. 
+
+4. Leave out normalization. Does your net learn? Try another normalization technique. 
+
+5. Explore the different updaters and optimization algorithms. 
+
