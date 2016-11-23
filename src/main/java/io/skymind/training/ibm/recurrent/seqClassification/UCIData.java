@@ -12,18 +12,18 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Created by susaneraly on 11/22/16.
+ * @author Alex Black
  */
 public class UCIData {
 
     //'baseDir': Base directory for the data. Change this if you want to save the data somewhere else
-    private static File baseDir = new File("src/main/resources/uci/");
-    private static File baseTrainDir = new File(baseDir, "train");
-    private static File featuresDirTrain = new File(baseTrainDir, "features");
-    private static File labelsDirTrain = new File(baseTrainDir, "labels");
-    private static File baseTestDir = new File(baseDir, "test");
-    private static File featuresDirTest = new File(baseTestDir, "features");
-    private static File labelsDirTest = new File(baseTestDir, "labels");
+    public static final File baseDir = new File("src/main/resources/uci/");
+    public static final File baseTrainDir = new File(baseDir, "train");
+    public static final File featuresDirTrain = new File(baseTrainDir, "features");
+    public static final File labelsDirTrain = new File(baseTrainDir, "labels");
+    public static final File baseTestDir = new File(baseDir, "test");
+    public static final File featuresDirTest = new File(baseTestDir, "features");
+    public static final File labelsDirTest = new File(baseTestDir, "labels");
 
     //This method downloads the data, and converts the "one time series per line" format into a suitable
     //CSV sequence format that DataVec (CsvSequenceRecordReader) and DL4J can read.

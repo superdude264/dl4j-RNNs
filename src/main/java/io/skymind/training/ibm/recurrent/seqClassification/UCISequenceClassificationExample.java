@@ -29,99 +29,87 @@ import java.io.File;
 
 /**
  * Sequence Classification Example Using a LSTM Recurrent Neural Network
- *
+ * <p>
  * This example learns how to classify univariate time series as belonging to one of six categories.
  * Categories are: Normal, Cyclic, Increasing trend, Decreasing trend, Upward shift, Downward shift
- *
+ * <p>
  * Data is the UCI Synthetic Control Chart Time Series Data Set
  * Details:     https://archive.ics.uci.edu/ml/datasets/Synthetic+Control+Chart+Time+Series
  * Data:        https://archive.ics.uci.edu/ml/machine-learning-databases/synthetic_control-mld/synthetic_control.data
  * Image:       https://archive.ics.uci.edu/ml/machine-learning-databases/synthetic_control-mld/data.jpeg
  *
- * This example proceeds as follows:
- * 1. Download and prepare the data
- *    (a) Split the 600 sequences into train set of size 450, and test set of size 150
- *    (b) Write the data into a format suitable for loading using the CSVSequenceRecordReader for sequence classification
- *        This format: one time series per file, and a separate file for the labels.
- *        For example, train/features/0.csv is the features using with the labels file train/labels/0.csv
- *        Because the data is a univariate time series, we only have one column in the CSV files. Normally, each column
- *        would contain multiple values - one time step per row.
- *        Furthermore, because we have only one label for each time series, the labels CSV files contain only a single value
- *
- * 2. Load the training data using CSVSequenceRecordReader (to load/parse the CSV files) and SequenceRecordReaderDataSetIterator
- *    (to convert it to DataSet objects, ready to train)
- *    For more details on this step, see: http://deeplearning4j.org/usingrnns#data
- *
- * 3. Normalize the data. The raw data contain values that are too large for effective training, and need to be normalized.
- *    Normalization is conducted using NormalizerStandardize, based on statistics (mean, st.dev) collected on the training
- *    data only. Note that both the training data and test data are normalized in the same way.
- *
- * 4. Configure the network
- *    The data set here is very small, so we can't afford to use a large network with many parameters.
- *    We are using one small LSTM layer and one RNN output layer
- *
- * 5. Train the network for 40 epochs
- *    At each epoch, evaluate and print the accuracy and f1 on the test set
- *
  * @author Alex Black
  */
 public class UCISequenceClassificationExample {
+
     private static final Logger log = LoggerFactory.getLogger(UCISequenceClassificationExample.class);
 
-    //'baseDir': Base directory for the data. Change this if you want to save the data somewhere else
-    private static File baseDir = new File("src/main/resources/uci/");
-    private static File baseTrainDir = new File(baseDir, "train");
-    private static File featuresDirTrain = new File(baseTrainDir, "features");
-    private static File labelsDirTrain = new File(baseTrainDir, "labels");
-    private static File baseTestDir = new File(baseDir, "test");
-    private static File featuresDirTest = new File(baseTestDir, "features");
-    private static File labelsDirTest = new File(baseTestDir, "labels");
-
     public static void main(String[] args) throws Exception {
+
+        /*
+            STEP I.
+            Download and write the data in a suitable format into csv files
+                - separate files for features and labels
+                - separate directories for train and test
+                Use for future reference: https://deeplearning4j.org/usingrnns#data
+         */
+
         UCIData.download();
 
-        // ----- Load the training data -----
-        //Note that we have 450 training files for features: train/features/0.csv through train/features/449.csv
+        /*
+            STEP II. Set up training Data
+            Load the training data using csv record readers. Specify a minibatch size for the record reader.
+            Note that we have 450 training files for features: train/features/0.csv through train/features/449.csv
+            For future reference on csv record readers refer to the CSV record reader examples in the dl4j-examples repo
+         */
+
         SequenceRecordReader trainFeatures = new CSVSequenceRecordReader();
-        trainFeatures.initialize(new NumberedFileInputSplit(featuresDirTrain.getAbsolutePath() + "/%d.csv", 0, 449));
+        trainFeatures.initialize(new NumberedFileInputSplit(UCIData.featuresDirTrain.getAbsolutePath() + "/%d.csv", 0, 449));
         SequenceRecordReader trainLabels = new CSVSequenceRecordReader();
-        trainLabels.initialize(new NumberedFileInputSplit(labelsDirTrain.getAbsolutePath() + "/%d.csv", 0, 449));
+        trainLabels.initialize(new NumberedFileInputSplit(UCIData.labelsDirTrain.getAbsolutePath() + "/%d.csv", 0, 449));
 
         int miniBatchSize = 10;
         int numLabelClasses = 6;
         DataSetIterator trainData = new SequenceRecordReaderDataSetIterator(trainFeatures, trainLabels, miniBatchSize, numLabelClasses,
-            false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
+                false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
 
-        //Normalize the training data
+        /*
+            STEP III. Normalizing
+            Here we use a standard normalizer that will subtract the mean and divide by the std dev
+            ".fit" on data -> collects statistics (mean and std dev)
+            ".setPreProcessor" -> allows us to use previously collected statistics to normalize on-the-fly.
+            For future reference:
+                Example in dl4j-examples with a min max normalizer
+         */
         DataNormalization normalizer = new NormalizerStandardize();
-        normalizer.fit(trainData);              //Collect training data statistics
-        trainData.reset();
-
-        //Use previously collected statistics to normalize on-the-fly. Each DataSet returned by 'trainData' iterator will be normalized
+        normalizer.fit(trainData);
         trainData.setPreProcessor(normalizer);
 
-
-        // ----- Load the test data -----
-        //Same process as for the training data.
+        /*
+            STEP IV. Set up test data.
+            Very important: apply the same normalization to the test and train.
+         */
         SequenceRecordReader testFeatures = new CSVSequenceRecordReader();
-        testFeatures.initialize(new NumberedFileInputSplit(featuresDirTest.getAbsolutePath() + "/%d.csv", 0, 149));
+        testFeatures.initialize(new NumberedFileInputSplit(UCIData.featuresDirTest.getAbsolutePath() + "/%d.csv", 0, 149));
         SequenceRecordReader testLabels = new CSVSequenceRecordReader();
-        testLabels.initialize(new NumberedFileInputSplit(labelsDirTest.getAbsolutePath() + "/%d.csv", 0, 149));
-
+        testLabels.initialize(new NumberedFileInputSplit(UCIData.labelsDirTest.getAbsolutePath() + "/%d.csv", 0, 149));
         DataSetIterator testData = new SequenceRecordReaderDataSetIterator(testFeatures, testLabels, miniBatchSize, numLabelClasses,
-            false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
+                false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
+        testData.setPreProcessor(normalizer);
 
-        testData.setPreProcessor(normalizer);   //Note that we are using the exact same normalization process as the training data
-
-
-        // ----- Configure the network -----
+        /*
+            STEP V.
+            Configure the network and initialize it
+            Note that the .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue) is not always required,
+                but is a technique that was found to help with this data set
+         */
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
-                .seed(123)    //Random number generator seed for improved repeatability. Optional.
+                .seed(123)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .weightInit(WeightInit.XAVIER)
                 .updater(Updater.NESTEROVS).momentum(0.9)
                 .learningRate(0.005)
-                .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)  //Not always required, but helps with this data set
+                .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)
                 .gradientNormalizationThreshold(0.5)
                 .list()
                 .layer(0, new GravesLSTM.Builder().activation("tanh").nIn(1).nOut(10).build())
@@ -132,35 +120,30 @@ public class UCISequenceClassificationExample {
         MultiLayerNetwork net = new MultiLayerNetwork(conf);
         net.init();
 
+        /*
+            STEP VI. Set up the UI
 
-        //SGE
-
-        //Initialize the user interface backend
+         */
         UIServer uiServer = UIServer.getInstance();
-
-        //Configure where the network information (gradients, activations, score vs. time etc) is to be stored
-        //Then add the StatsListener to collect this information from the network, as it trains
-        StatsStorage statsStorage = new InMemoryStatsStorage();             //Alternative: new FileStatsStorage(File) - see UIStorageExample
+        StatsStorage statsStorage = new InMemoryStatsStorage();
         net.setListeners(new StatsListener(statsStorage));
-
-        //Attach the StatsStorage instance to the UI: this allows the contents of the StatsStorage to be visualized
         uiServer.attach(statsStorage);
 
 
-        // ----- Train the network, evaluating the test set performance at each epoch -----
+        /*
+            STEP VII. Train the network, evaluating the test set performance at each epoch
+                      Track the loss function and the weight changes and other metrics in the UI.
+                      Open up: http://localhost:9000/
+         */
         int nEpochs = 40;
         String str = "Test set evaluation at epoch %d: Accuracy = %.2f, F1 = %.2f";
         for (int i = 0; i < nEpochs; i++) {
             net.fit(trainData);
-
-            //Evaluate on the test set:
             Evaluation evaluation = net.evaluate(testData);
             log.info(String.format(str, i, evaluation.accuracy(), evaluation.f1()));
-
             testData.reset();
             trainData.reset();
         }
-
         log.info("----- Example Complete -----");
     }
 
