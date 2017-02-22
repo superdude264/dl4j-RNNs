@@ -1,5 +1,7 @@
 package io.skymind.training.ibm.recurrent.seqClassification;
 
+import java.io.File;
+
 import org.datavec.api.records.reader.SequenceRecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVSequenceRecordReader;
 import org.datavec.api.split.NumberedFileInputSplit;
@@ -18,6 +20,7 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
+import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.impl.ActivationSoftmax;
 import org.nd4j.linalg.activations.impl.ActivationTanH;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -142,6 +145,9 @@ public class UCISequenceClassificationExample {
             trainData.reset();
         }
         log.info("----- Example Complete -----");
+        
+        // Save
+        ModelSerializer.writeModel(net,new File("target/trained_model.zip"),false);
     }
 
 }
