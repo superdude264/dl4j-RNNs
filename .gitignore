@@ -18,3 +18,6 @@ src/main/resources/uci/
 .idea/*
 *.iml
 logs/*
+
+.classpath
+.settings/*
