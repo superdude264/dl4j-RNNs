@@ -18,14 +18,14 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
+import org.nd4j.linalg.activations.impl.ActivationSoftmax;
+import org.nd4j.linalg.activations.impl.ActivationTanH;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 /**
  * Sequence Classification Example Using a LSTM Recurrent Neural Network
@@ -109,9 +109,9 @@ public class UCISequenceClassificationExample {
                 .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)
                 .gradientNormalizationThreshold(0.5)
                 .list()
-                .layer(0, new GravesLSTM.Builder().activation("tanh").nIn(1).nOut(10).build())
+                .layer(0, new GravesLSTM.Builder().activation(new ActivationTanH()).nIn(1).nOut(10).build())
                 .layer(1, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT)
-                        .activation("softmax").nIn(10).nOut(numLabelClasses).build())
+                        .activation(new ActivationSoftmax()).nIn(10).nOut(numLabelClasses).build())
                 .pretrain(false).backprop(true).build();
 
         MultiLayerNetwork net = new MultiLayerNetwork(conf);
